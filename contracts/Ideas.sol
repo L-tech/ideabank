@@ -32,7 +32,9 @@ contract Ideas {
 
     function getAllIdeas() external view returns (Idea[] memory _ideas) {
         for(uint i = 0; i < ideaCount; i++) {
-            _ideas[i] = ideas[i];
+            if(ideas[i].isPublished) {
+                _ideas[i] = ideas[i];
+            }
         }
     } 
 }

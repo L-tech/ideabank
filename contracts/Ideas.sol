@@ -17,6 +17,11 @@ contract Ideas {
     mapping (uint => Idea) ideas;
     uint private ideaCount;
 
+    modifier isIdeaOwner(uint _ideaId) {
+        require(ideas[_ideaId].owner == msg.sender);
+        _;
+    }
+
     function createIdea(string memory _title, string memory _concept, bool _status) external {
         require(ideaCount <= 50, "Ideas cant exceed 50");
         ideas[ideaCount].title = _title;
@@ -36,5 +41,9 @@ contract Ideas {
                 _ideas[i] = ideas[i];
             }
         }
+    }
+    function updateIdeaStatus(uint _ideaIndex) external isIdeaOwner(_ideaIndex) returns (bool){
+        ideas[_ideaIndex].isPublished = !ideas[_ideaIndex].isPublished;
+        return ideas[_ideaIndex].isPublished;
     } 
 }

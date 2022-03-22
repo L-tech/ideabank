@@ -102,7 +102,7 @@ contract Ideas {
         }
         ideas[_ideaIndex].whilteList = emptyWhitelist;
     }
-
+    // Get all whitelisted users
     function getWhitelist(uint _ideaIndex) external view returns (address[] memory _whitelist) {
         _whitelist = ideas[_ideaIndex].whilteList;
     }
@@ -118,7 +118,7 @@ contract Ideas {
         return commentsByIdeaId[_ideaIndex];
     }
 
-    // Persist a new comment
+    // Add a new comment
     function addComment(uint _ideaIndex, string calldata _content) public {
         Comment memory comment = Comment({
             user: msg.sender,
@@ -129,7 +129,7 @@ contract Ideas {
         commentCount += 1;
         emit CommentAdded(comment);
     }
-
+    // Ask a question
     function askQuestion(uint _ideaIndex, string memory _question) external isIdeaOwner(_ideaIndex) {
         QnA memory qna = QnA({
             _ideaIndex: _ideaIndex,
@@ -141,11 +141,11 @@ contract Ideas {
         qnaCount += 1;
         qnas[qnaCount] = qna;
     }
-
+    // Answer a question
     function answerQuestion(uint _ideaIndex, uint _qnaIndex, string memory _answer) external isIdeaOwner(_ideaIndex) {
         qnas[_qnaIndex].answer = _answer;
     }
-
+    // Get all questions and answers
     function getQnAs(uint _ideaIndex) external view returns (QnA[] memory _qnas) {
         for(uint i = 0; i < qnaCount; i++) {
             if(qnas[i]._ideaIndex == _ideaIndex) {

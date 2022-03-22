@@ -49,7 +49,7 @@ contract Ideas {
         require(ideas[_ideaId].owner == msg.sender);
         _;
     }
-
+    // Create a new idea
     function createIdea(string memory _title, string memory _concept, string[] memory _tags, bool _status) external {
         require(ideaCount <= 50, "Ideas cant exceed 50");
         ideas[ideaCount].title = _title;
@@ -59,11 +59,11 @@ contract Ideas {
         ideas[ideaCount].tags = _tags;
         ideaCount += 1;
     }
-
+    // Fetch a given idea
     function getIdea(uint _index) external view returns (Idea memory _idea){
         _idea = ideas[_index];
     }
-
+    // Fetch all ideas
     function getAllIdeas() external view returns (Idea[] memory _ideas) {
         for(uint i = 0; i < ideaCount; i++) {
             if(ideas[i].isPublished && !ideas[i].restricted) {
@@ -71,6 +71,8 @@ contract Ideas {
             }
         }
     }
+    // Moved idea from draft to published
+
     function updateIdeaStatus(uint _ideaIndex) external isIdeaOwner(_ideaIndex) returns (bool){
         ideas[_ideaIndex].isPublished = !ideas[_ideaIndex].isPublished;
         return ideas[_ideaIndex].isPublished;
@@ -151,5 +153,5 @@ contract Ideas {
             }
         }
     }
-    
+
 }

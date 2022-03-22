@@ -140,5 +140,9 @@ contract Ideas {
         qnas[qnaCount] = qna;
     }
 
+    function answerQuestion(uint _ideaIndex, uint _qnaIndex, string memory _answer) external isIdeaOwner(_ideaIndex) {
+        qnas[_qnaIndex].answer = _answer;
+    }
+
     
 }

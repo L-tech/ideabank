@@ -13,13 +13,14 @@ contract Ideas {
         bool restricted;
         address[] whilteList;
         string[] tags;
+        address[] favour;
+        address[] against;
     }
-    struct Vote {
-        address voter;
-        uint favour;
-        uint against; 
-        uint total;
+    enum Vote {
+        For,
+        Against
     }
+    Vote public vote;
     struct Comment {
         address user;
         // string category;
@@ -39,7 +40,6 @@ contract Ideas {
     mapping (uint => Idea) ideas;
     uint32 private commentCount;
     uint private ideaCount;
-    uint private voteCount;
     uint private qnaCount;
     address[] private whitelistPlaceholder;
     // Notify users that a comment was added 
@@ -49,6 +49,7 @@ contract Ideas {
         require(ideas[_ideaId].owner == msg.sender);
         _;
     }
+
     // Create a new idea
     function createIdea(string memory _title, string memory _concept, string[] memory _tags, bool _status) external {
         require(ideaCount <= 50, "Ideas cant exceed 50");
@@ -59,10 +60,12 @@ contract Ideas {
         ideas[ideaCount].tags = _tags;
         ideaCount += 1;
     }
+
     // Fetch a given idea
     function getIdea(uint _index) external view returns (Idea memory _idea){
         _idea = ideas[_index];
     }
+
     // Fetch all ideas
     function getAllIdeas() external view returns (Idea[] memory _ideas) {
         for(uint i = 0; i < ideaCount; i++) {
@@ -71,27 +74,35 @@ contract Ideas {
             }
         }
     }
+
     // Moved idea from draft to published
 
     function updateIdeaStatus(uint _ideaIndex) external isIdeaOwner(_ideaIndex) returns (bool){
         ideas[_ideaIndex].isPublished = !ideas[_ideaIndex].isPublished;
         return ideas[_ideaIndex].isPublished;
-    } 
-    // Vote on an idea
-    function vote(uint _ideaIndex, bool _vote) external {
-        if(_vote) {
-            
-            votes[_ideaIndex].voter = msg.sender;
-            votes[_ideaIndex].favour += 1;
-        } else {
-            votes[_ideaIndex].voter = msg.sender;
-            votes[_ideaIndex].against += 1;
-        }
     }
+
+    // Vote on an idea
+    function voteIdea(uint _ideaIndex, Vote _vote) external {
+        if(_vote == Vote.For) {
+            ideas[_ideaIndex].favour.push(msg.sender);
+        } else if(_vote == Vote.Against) {
+            ideas[_ideaIndex].against.push(msg.sender);
+        }
+
+    }
+
+    // Get Votes on an idea
+    function getVotes(uint _ideaIndex) external view returns (uint _for, uint _against) {
+        _for = ideas[_ideaIndex].favour.length;
+        _against = ideas[_ideaIndex].against.length;
+    }
+
     // Whitelist idea contributors
     function grantAccess(uint _ideaIndex, address _user) external isIdeaOwner(_ideaIndex) {
         ideas[_ideaIndex].whilteList.push(_user);
     }
+
     // Revoke whitelist 
     function revokeAccess(uint _ideaIndex, address _user) external isIdeaOwner(_ideaIndex) {
         address[] memory emptyWhitelist;
@@ -102,17 +113,12 @@ contract Ideas {
         }
         ideas[_ideaIndex].whilteList = emptyWhitelist;
     }
+
     // Get all whitelisted users
     function getWhitelist(uint _ideaIndex) external view returns (address[] memory _whitelist) {
         _whitelist = ideas[_ideaIndex].whilteList;
     }
 
-    function getVotes(uint _ideaIndex) external view returns (Vote[] memory _votes) {
-        for(uint i = 0; i < votes[_ideaIndex].total; i++) {
-                _votes[i] = votes[i];
-            
-        }
-    }
     // Get comments on an idea
     function getComments(uint _ideaIndex) public view returns(Comment[] memory) {
         return commentsByIdeaId[_ideaIndex];
@@ -153,5 +159,4 @@ contract Ideas {
             }
         }
     }
-
 }

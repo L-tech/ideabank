@@ -15,6 +15,7 @@ contract Ideas {
         string[] tags;
         address[] favour;
         address[] against;
+        address[] collaborators;
         uint tip;
     }
     enum Vote {
@@ -51,6 +52,17 @@ contract Ideas {
         require(ideas[_ideaId].owner == msg.sender);
         _;
     }
+    modifier onlyCollaborator(uint _ideaId) {
+        bool isCollaborator = false;
+        for(uint i = 0; i < ideas[_ideaId].collaborators.length; i++) {
+            if(ideas[_ideaId].collaborators[i] == msg.sender) {
+                isCollaborator = true;
+            }
+        }
+        require(isCollaborator, "Only collaborators can perform this action");
+        _;
+
+    }
 
     // Create a new idea
     function createIdea(string memory _title, string memory _concept, string[] memory _tags, bool _status) external {
@@ -60,6 +72,7 @@ contract Ideas {
         ideas[ideaCount].owner = msg.sender;
         ideas[ideaCount].restricted = _status;
         ideas[ideaCount].tags = _tags;
+        ideas[ideaCount].collaborators.push(msg.sender);
         ideaCount += 1;
     }
 
@@ -103,6 +116,12 @@ contract Ideas {
     // Whitelist idea contributors
     function grantAccess(uint _ideaIndex, address _user) external isIdeaOwner(_ideaIndex) {
         ideas[_ideaIndex].whilteList.push(_user);
+    }
+
+    // Add Colloborator
+
+    function addCollaborator(uint _ideaIndex, address _user) external isIdeaOwner(_ideaIndex) {
+        ideas[_ideaIndex].collaborators.push(_user);
     }
 
     // Revoke whitelist 
@@ -150,7 +169,7 @@ contract Ideas {
         qnas[qnaCount] = qna;
     }
     // Answer a question
-    function answerQuestion(uint _ideaIndex, uint _qnaIndex, string memory _answer) external isIdeaOwner(_ideaIndex) {
+    function answerQuestion(uint _ideaIndex, uint _qnaIndex, string memory _answer) external onlyCollaborator(_ideaIndex) {
         qnas[_qnaIndex].answer = _answer;
     }
     // Get all questions and answers

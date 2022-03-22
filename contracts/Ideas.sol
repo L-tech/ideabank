@@ -77,7 +77,7 @@ contract Ideas {
         ideas[_ideaIndex].isPublished = !ideas[_ideaIndex].isPublished;
         return ideas[_ideaIndex].isPublished;
     } 
-
+    // Vote on an idea
     function vote(uint _ideaIndex, bool _vote) external {
         if(_vote) {
             
@@ -88,11 +88,11 @@ contract Ideas {
             votes[_ideaIndex].against += 1;
         }
     }
-
+    // Whitelist idea contributors
     function grantAccess(uint _ideaIndex, address _user) external isIdeaOwner(_ideaIndex) {
         ideas[_ideaIndex].whilteList.push(_user);
     }
-
+    // Revoke whitelist 
     function revokeAccess(uint _ideaIndex, address _user) external isIdeaOwner(_ideaIndex) {
         address[] memory emptyWhitelist;
         for(uint i = 0; i < ideas[_ideaIndex].whilteList.length; i++) {

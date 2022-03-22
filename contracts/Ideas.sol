@@ -144,5 +144,11 @@ contract Ideas {
         qnas[_qnaIndex].answer = _answer;
     }
 
-    
+    function getQnAs(uint _ideaIndex) external view returns (QnA[] memory _qnas) {
+        for(uint i = 0; i < qnaCount; i++) {
+            if(qnas[i]._ideaIndex == _ideaIndex) {
+                _qnas[i] = qnas[i];
+            }
+        }
+    }
 }

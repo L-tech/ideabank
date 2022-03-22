@@ -15,13 +15,14 @@ contract Ideas {
         string[] tags;
         address[] favour;
         address[] against;
+        uint tip;
     }
     enum Vote {
         For,
         Against
     }
     Vote public vote;
-    struct Comment {
+    struct Review {
         address user;
         // string category;
         string content;
@@ -35,15 +36,16 @@ contract Ideas {
         string answer;
     }
     mapping(uint => QnA) public qnas;
-    mapping(uint => Comment[]) private commentsByIdeaId;
+    mapping(uint => Review[]) private reviewsByIdeaId;
     mapping(uint => Vote) votes;
     mapping (uint => Idea) ideas;
-    uint32 private commentCount;
+    uint32 private reviewsCount;
     uint private ideaCount;
     uint private qnaCount;
     address[] private whitelistPlaceholder;
-    // Notify users that a comment was added 
-    event CommentAdded(Comment comment);
+    // Notify users that a Review was added 
+    event ReviewAdded(Review Review);
+    event ideaTipped(uint indexed _ideaIndex, address indexed _sender, uint _amount);
 
     modifier isIdeaOwner(uint _ideaId) {
         require(ideas[_ideaId].owner == msg.sender);
@@ -119,21 +121,21 @@ contract Ideas {
         _whitelist = ideas[_ideaIndex].whilteList;
     }
 
-    // Get comments on an idea
-    function getComments(uint _ideaIndex) public view returns(Comment[] memory) {
-        return commentsByIdeaId[_ideaIndex];
+    // Get reviews on an idea
+    function getReviews(uint _ideaIndex) public view returns(Review[] memory) {
+        return reviewsByIdeaId[_ideaIndex];
     }
 
-    // Add a new comment
-    function addComment(uint _ideaIndex, string calldata _content) public {
-        Comment memory comment = Comment({
+    // Add a new Review
+    function addReview(uint _ideaIndex, string calldata _content) public {
+        Review memory review = Review({
             user: msg.sender,
             content: _content,
             created_at: block.timestamp
         });
-        commentsByIdeaId[_ideaIndex].push(comment);
-        commentCount += 1;
-        emit CommentAdded(comment);
+        reviewsByIdeaId[_ideaIndex].push(review);
+        reviewsCount += 1;
+        emit ReviewAdded(review);
     }
     // Ask a question
     function askQuestion(uint _ideaIndex, string memory _question) external isIdeaOwner(_ideaIndex) {
@@ -159,4 +161,15 @@ contract Ideas {
             }
         }
     }
+
+    // tip an idea initiator
+    function tipIdea(uint _ideaIndex) external payable {
+        require(msg.value >= 0, "Amount must be greater than 0");
+        address payable owner = payable(ideas[_ideaIndex].owner);
+        (bool sent, bytes memory data) = owner.call{value: msg.value}("");
+        require(sent, "Failed to send Ether");
+        ideas[_ideaIndex].tip += msg.value;
+        emit ideaTipped(_ideaIndex, msg.sender, msg.value);
+    }
+
 }

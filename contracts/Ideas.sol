@@ -12,6 +12,7 @@ contract Ideas {
         bool isPublished;
         bool restricted;
         address[] whilteList;
+        string[] tags;
     }
     struct Vote {
         address voter;
@@ -25,26 +26,37 @@ contract Ideas {
         string content;
         uint256 created_at;
     }
+    struct QnA {
+        uint _ideaIndex;
+        address user;
+        string question;
+        uint256 created_at;
+        string answer;
+    }
+    mapping(uint => QnA) public qnas;
     mapping(uint => Comment[]) private commentsByIdeaId;
     mapping(uint => Vote) votes;
     mapping (uint => Idea) ideas;
     uint32 private commentCount;
     uint private ideaCount;
     uint private voteCount;
+    uint private qnaCount;
     address[] private whitelistPlaceholder;
     // Notify users that a comment was added 
     event CommentAdded(Comment comment);
+
     modifier isIdeaOwner(uint _ideaId) {
         require(ideas[_ideaId].owner == msg.sender);
         _;
     }
 
-    function createIdea(string memory _title, string memory _concept, bool _status) external {
+    function createIdea(string memory _title, string memory _concept, string[] memory _tags, bool _status) external {
         require(ideaCount <= 50, "Ideas cant exceed 50");
         ideas[ideaCount].title = _title;
         ideas[ideaCount].concept = _concept;
         ideas[ideaCount].owner = msg.sender;
         ideas[ideaCount].restricted = _status;
+        ideas[ideaCount].tags = _tags;
         ideaCount += 1;
     }
 
@@ -106,13 +118,27 @@ contract Ideas {
 
     // Persist a new comment
     function addComment(uint _ideaIndex, string calldata _content) public {
-      Comment memory comment = Comment({
-        user: msg.sender,
-        content: _content,
-        created_at: block.timestamp
-    });
-    commentsByIdeaId[_ideaIndex].push(comment);
-    commentCount += 1;
-    emit CommentAdded(comment);
-  }
+        Comment memory comment = Comment({
+            user: msg.sender,
+            content: _content,
+            created_at: block.timestamp
+        });
+        commentsByIdeaId[_ideaIndex].push(comment);
+        commentCount += 1;
+        emit CommentAdded(comment);
+    }
+
+    function askQuestion(uint _ideaIndex, string memory _question) external isIdeaOwner(_ideaIndex) {
+        QnA memory qna = QnA({
+            _ideaIndex: _ideaIndex,
+            user: msg.sender,
+            question: _question,
+            created_at: block.timestamp,
+            answer: ""
+        });
+        qnaCount += 1;
+        qnas[qnaCount] = qna;
+    }
+
+    
 }
